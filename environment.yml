@@ -242,4 +242,4 @@ dependencies:
       - widgetsnbextension==4.0.11
       - xformers==0.0.26.post1
       - zipp==3.19.2
-prefix: /home/xmu/anaconda3/envs/adaflow
+prefix: ~/anaconda3/envs/adaflow
