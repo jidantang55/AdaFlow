@@ -24,6 +24,14 @@ def register_batch_idx(diffusion_model, batch_idx, batch_start_idx=0):
             setattr(module, "batch_start_idx", batch_start_idx)
 
 
+def register_frame_idx(diffusion_model, idx_begin, idx_end):
+    for _, module in diffusion_model.named_modules():
+        # If for some reason this has a different name, create an issue and I'll fix it
+        if isinstance_str(module, "BasicTransformerBlock"):
+            setattr(module, "idx_begin", idx_begin)
+            setattr(module, "idx_end", idx_end)
+
+
 def register_matching(diffusion_model, matching, dift_size, key_matching):
     for _, module in diffusion_model.named_modules():
         # If for some reason this has a different name, create an issue and I'll fix it
@@ -122,7 +130,7 @@ def register_conv_injection(model, injection_schedule):
     setattr(conv_module, 'injection_schedule', injection_schedule)
 
 
-def register_extended_attention_pnp(model, injection_schedule, max_batch_size):
+def register_extended_attention_pnp(model, injection_schedule, max_kv_size):
     def sa_forward(self):
         to_out = self.to_out
         if type(to_out) is torch.nn.modules.container.ModuleList:
@@ -149,13 +157,13 @@ def register_extended_attention_pnp(model, injection_schedule, max_batch_size):
                 k[2 * n_frames:] = k[:n_frames]
 
             total_tokens = n_frames * sequence_length
-            if n_frames > max_batch_size:
+            if n_frames > max_kv_size:
                 size = None
                 for (size_h, size_w) in self.dift_size:
                     if sequence_length == size_h * size_w:
                         size = f'{size_h}_{size_w}'
                         break
-                num_selected_tokens = int(total_tokens // (n_frames / max_batch_size))
+                num_selected_tokens = int(total_tokens // (n_frames / max_kv_size))
                 # num_selected_tokens = 2
                 # selected_indices = torch.randperm(total_tokens)[:num_selected_tokens]
                 selected_indices = self.key_matching[f'{size}_{self.t}']
@@ -170,7 +178,6 @@ def register_extended_attention_pnp(model, injection_schedule, max_batch_size):
                 k_uncond = torch.stack([k_uncond[0][selected_indices[i]] for i in range(n_frames)], dim=0)
                 k_cond = k[2 * n_frames:].reshape(1, n_frames * sequence_length, -1)
                 k_cond = torch.stack([k_cond[0][selected_indices[i]] for i in range(n_frames)], dim=0)
-
 
                 v_source = v[:n_frames]
                 # v_uncond = v[n_frames:2 * n_frames].view(-1, v_source.shape[-1])[selected_indices].reshape(1, num_selected_tokens, -1).repeat(n_frames, 1, 1)
@@ -220,7 +227,7 @@ def register_extended_attention_pnp(model, injection_schedule, max_batch_size):
             out_uncond_all = []
             out_cond_all = []
 
-            single_batch = n_frames <= max_batch_size
+            single_batch = n_frames <= max_kv_size
             b = n_frames if single_batch else 1
 
             for frame in range(0, n_frames, b):
@@ -445,8 +452,11 @@ def make_adaflow_attention_block(block_class: Type[torch.nn.Module]) -> Type[tor
                     # print("idx1", idx1[0][5] // (sequence_length ** 0.5), idx1[0][5] % (sequence_length ** 0.5))
                     # print("idx2", idx2[0][5] // (sequence_length ** 0.5), idx2[0][5] % (sequence_length ** 0.5))
                 else:
-                    idx1.append(self.matching[f'{size}_{batch_idxs[0]}'][
-                                    int(self.pivotal_idx[batch_idxs[0]] - self.batch_start_idx)])  # n_frames * seq_len
+                    matching = self.matching[f'{size}_{batch_idxs[0]}'][
+                        int(self.pivotal_idx[batch_idxs[0]] - self.batch_start_idx)]  # n_frames * seq_len
+                    matching = matching.view(-1, sequence_length)
+                    matching = matching[self.idx_begin: self.idx_end].reshape(-1)
+                    idx1.append(matching.to(hidden_states.device))
                 # time2 = time.time() - start - time1
                 # print("Time2: ", time2)
                 idx1 = torch.stack(idx1 * 3, dim=0)  # 3, n_frames * seq_len

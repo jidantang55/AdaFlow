@@ -165,20 +165,20 @@ class AdaFlow(nn.Module):
         key_matching = {}
         for i in tqdm(range(len(self.frames)), desc='Extracting DIFT features'):
             ft = dift.forward(self.frames[i], prompt='', t=0, up_ft_index=[2], ensemble_size=8)  # [1, c, h, w]
-            ft_list.append(ft[2])
+            ft_list.append(ft[2].detach().cpu())
         if self.config["batch_size"] == "auto":
             batch_begin_idx = [0]
-            frames_ft = torch.cat(ft_list).to(device)  # [n_frames, c, h, w]
+            frames_ft = torch.cat(ft_list)  # [n_frames, c, h, w]
             frames_ft = frames_ft.permute(0, 2, 3, 1)  # [n_frames, h, w, c]
             dim = frames_ft.shape[-1]
             cur_frame_idx = 0
             h, w = frames_ft[0].shape[:2]
             while cur_frame_idx < len(frames_ft):
-                ft1 = frames_ft[cur_frame_idx].reshape(-1, dim)  # [seq_len, c]
+                ft1 = frames_ft[cur_frame_idx].reshape(-1, dim).to(device)  # [seq_len, c]
                 ft1 = ft1 / ft1.norm(dim=-1, keepdim=True)
                 for frame_idx in range(cur_frame_idx + 1, len(frames_ft)):
                     # print(f"Matching {cur_frame_idx} with {frame_idx}")
-                    ft2 = frames_ft[frame_idx].reshape(-1, dim)  # [seq_len, c]
+                    ft2 = frames_ft[frame_idx].reshape(-1, dim).to(device)  # [seq_len, c]
                     ft2 = ft2 / ft2.norm(dim=-1, keepdim=True)
                     similarity = ft1 @ ft2.T  # [seq_len, seq_len]
                     max_sim = similarity.max(dim=1).values  # [seq_len]
@@ -197,35 +197,38 @@ class AdaFlow(nn.Module):
                         cur_frame_idx = frame_idx + 1
         else:
             batch_begin_idx = list(range(0, len(self.frames), self.config["batch_size"]))
+        torch.cuda.empty_cache()
         print(f'Batch begin index: {batch_begin_idx}')
-        if len(batch_begin_idx) > int(self.config["max_batch_size"] ** 0.5):
-            keep_ratio = int(self.config["max_batch_size"] ** 0.5) / len(batch_begin_idx)
+        if len(batch_begin_idx) > self.config["max_kv_size"]:
+            keep_ratio = self.config["max_kv_size"] / len(batch_begin_idx)
             print(f"Will only keep {100 * keep_ratio:.2f}% of K/V when editing key frames!")
         all_pivotal_idx = self.generate_pivotal(batch_begin_idx)
         for (h, w) in tqdm(zip(H, W), desc='Matching DIFT features', total=len(H)):
             # print(f"Matching for {h}x{w}")
-            frames_ft = torch.cat(ft_list).to(device)  # [n_frames, c, h, w]
+            frames_ft = torch.cat(ft_list)  # [n_frames, c, h, w]
             frames_ft = nn.functional.interpolate(frames_ft, size=(h, w), mode='bilinear', align_corners=False)
             frames_ft = frames_ft.permute(0, 2, 3, 1)  # [n_frames, h, w, c]
             for i, frame_idx in enumerate(batch_begin_idx):
                 batch_size = batch_begin_idx[i + 1] - frame_idx if i + 1 < len(batch_begin_idx) else len(
                     frames_ft) - frame_idx
-                matching[f'{h}_{w}_{i}'] = self.get_matching(frames_ft, frame_idx, batch_size)
-            if len(batch_begin_idx) > int(self.config["max_batch_size"] ** 0.5):
+                matching[f'{h}_{w}_{i}'] = self.get_matching(frames_ft, frame_idx, batch_size, device=device).detach().cpu()
+            torch.cuda.empty_cache()
+            if len(batch_begin_idx) > self.config["max_kv_size"]:
                 for t in self.scheduler.timesteps:
                     t = int(t)
                     key_frames_ft = frames_ft[all_pivotal_idx[t]]
-                    key_match = self.get_matching(key_frames_ft, 0, len(key_frames_ft), is_key=True)
-                    k = int(key_match.shape[1] // (key_match.shape[0] / int(self.config["max_batch_size"] ** 0.5)))
-                    _, key_matching[f'{h}_{w}_{t}'] = torch.topk(key_match, k, dim=1, largest=True)
+                    key_match = self.get_matching(key_frames_ft, 0, len(key_frames_ft), is_key=True, device=device)
+                    k = int(key_match.shape[1] // (key_match.shape[0] / self.config["max_kv_size"]))
+                    key_matching[f'{h}_{w}_{t}'] = torch.topk(key_match, k, dim=1, largest=True).indices.detach().cpu()
                     # if t == 981 and h == 64 and w == 64:
                     #     draw_kv(h, w, key_matching[f'{h}_{w}_{t}'], self.config["output_path"], self.frames[all_pivotal_idx[t]])
+        torch.cuda.empty_cache()
         return matching, batch_begin_idx, list(zip(H, W)), key_matching, all_pivotal_idx
 
-    def get_matching(self, frames_ft, begin_idx, batch_size, is_key=False):
+    def get_matching(self, frames_ft, begin_idx, batch_size, is_key=False, device='cuda'):
         dim = frames_ft.shape[-1]
-        if batch_size <= self.config["max_batch_size"] ** 0.5:
-            batch_ft = frames_ft[begin_idx:begin_idx + batch_size].reshape(-1, dim)  # [batch_size * seq_len, c]
+        if batch_size <= self.config["max_kv_size"]:
+            batch_ft = frames_ft[begin_idx:begin_idx + batch_size].reshape(-1, dim).to(device)  # [batch_size * seq_len, c]
             batch_ft = batch_ft / batch_ft.norm(dim=-1, keepdim=True)
             similarity = batch_ft @ batch_ft.T  # [batch_size * seq_len, batch_size * seq_len]
             sim_list = similarity.chunk(batch_size, dim=1)  # [batch_size * seq_len, seq_len]
@@ -236,16 +239,16 @@ class AdaFlow(nn.Module):
                 else:
                     idx.append(sim.max(dim=1).values.unsqueeze(0))  # [1, batch_size * seq_len]
         else:  # If batch_size is too large, split it into smaller batches. Otherwise, it may cause OOM.
-            batch_ft = frames_ft[begin_idx:begin_idx + batch_size].reshape(-1, dim)  # [batch_size * seq_len, c]
+            batch_ft = frames_ft[begin_idx:begin_idx + batch_size].reshape(-1, dim).to(device)  # [batch_size * seq_len, c]
             batch_ft = batch_ft / batch_ft.norm(dim=-1, keepdim=True)
             idx = []
             small_batch_size = self.config["max_batch_size"] // batch_size
             for j in range(0, batch_size, small_batch_size):
                 if j + small_batch_size < batch_size:
                     batch_ft_j = frames_ft[begin_idx + j:begin_idx + j + small_batch_size].reshape(-1,
-                                                                                                   dim)  # [batch_size_j * seq_len, c]
+                                                                                                   dim).to(device)  # [batch_size_j * seq_len, c]
                 else:
-                    batch_ft_j = frames_ft[begin_idx + j:begin_idx + batch_size].reshape(-1, dim)
+                    batch_ft_j = frames_ft[begin_idx + j:begin_idx + batch_size].reshape(-1, dim).to(device)
                 batch_ft_j = batch_ft_j / batch_ft_j.norm(dim=-1, keepdim=True)
                 similarity = batch_ft_j @ batch_ft.T  # [batch_size_j * seq_len, batch_size * seq_len]
                 sim_list = similarity.chunk(batch_size, dim=1)  # [batch_size_j * seq_len, seq_len]
@@ -348,7 +351,7 @@ class AdaFlow(nn.Module):
         latents = 1 / 0.18215 * latents
         imgs = []
         for i in range(0, len(latents), batch_size):
-            imgs.append(self.vae.decode(latents[i:i + batch_size]).sample)
+            imgs.append(self.vae.decode(latents[i:i + batch_size].to(self.device)).sample.detach().cpu())
         imgs = torch.cat(imgs)
         imgs = (imgs / 2 + 0.5).clamp(0, 1)
         return imgs
@@ -370,7 +373,10 @@ class AdaFlow(nn.Module):
         # encode to latents
         latents = self.encode_imgs(frames, deterministic=True).to(torch.float16).to(self.device)
         # get noise
-        eps = self.get_ddim_eps(latents, range(self.config["n_frames"])).to(torch.float16).to(self.device)
+        eps = self.get_ddim_eps(latents, range(self.config["n_frames"])).to(torch.float16)
+        frames = frames.detach().cpu()
+        latents = latents.detach().cpu()
+        torch.cuda.empty_cache()
         return paths, frames, latents, eps
 
     def get_ddim_eps(self, latent, indices):
@@ -396,7 +402,6 @@ class AdaFlow(nn.Module):
         # compute text embeddings
         text_embed_input = torch.cat([self.pnp_guidance_embeds.repeat(len(indices), 1, 1),
                                       torch.repeat_interleave(self.text_embeds, len(indices), dim=0)])
-
         # apply the denoising network
         noise_pred = self.unet(latent_model_input, t, encoder_hidden_states=text_embed_input)['sample']
 
@@ -414,19 +419,33 @@ class AdaFlow(nn.Module):
         pivotal_idx = self.all_pivotal_idx[int(t)]
 
         register_pivotal(self, True, pivotal_idx)
-        self.denoise_step(x[pivotal_idx], t, indices[pivotal_idx])
+        x_pivot = x[pivotal_idx].to(self.device)
+        self.denoise_step(x_pivot, t, indices[pivotal_idx])
+        torch.cuda.empty_cache()
         register_pivotal(self, False, pivotal_idx)
         for i, b in enumerate(batch_begin_idx):
             batch_size = batch_begin_idx[i + 1] - b if i + 1 < len(batch_begin_idx) else len(x) - b
             register_batch_idx(self, i, batch_begin_idx[i])
-            denoised_latents.append(self.denoise_step(x[b:b + batch_size], t, indices[b:b + batch_size]))
+            if batch_size <= 2 * self.config["max_kv_size"]:
+                register_frame_idx(self, 0, batch_size)
+                denoised_latents.append(self.denoise_step(x[b:b + batch_size].to(self.device), t, indices[b:b + batch_size]).detach().cpu())
+            else:
+                for j in range(0, batch_size, 2 * self.config["max_kv_size"]):
+                    if j + int(2 * self.config["max_kv_size"]) < batch_size:
+                        register_frame_idx(self, j, j + int(2 * self.config["max_kv_size"]))
+                        denoised_latents.append(self.denoise_step(x[b + j:b + j + int(2 * self.config["max_kv_size"])].to(self.device), t, indices[b + j:b + j + int(2 * self.config["max_kv_size"])]).detach().cpu())
+                    else:
+                        register_frame_idx(self, j, batch_size)
+                        denoised_latents.append(self.denoise_step(x[b + j:b + batch_size].to(self.device), t, indices[b + j:b + batch_size]).detach().cpu())
+        torch.cuda.empty_cache()
+
         denoised_latents = torch.cat(denoised_latents)
         return denoised_latents
 
     def init_method(self, conv_injection_t, qk_injection_t):
         self.qk_injection_timesteps = self.scheduler.timesteps[:qk_injection_t] if qk_injection_t >= 0 else []
         self.conv_injection_timesteps = self.scheduler.timesteps[:conv_injection_t] if conv_injection_t >= 0 else []
-        register_extended_attention_pnp(self, self.qk_injection_timesteps, int(self.config["max_batch_size"] ** 0.5))
+        register_extended_attention_pnp(self, self.qk_injection_timesteps, self.config["max_kv_size"])
         register_conv_injection(self, self.conv_injection_timesteps)
         set_adaflow(self.unet)
 
@@ -438,6 +457,7 @@ class AdaFlow(nn.Module):
         save_video(decoded, f'{self.config["output_path"]}/vae_recon_10.mp4', fps=10)
         save_video(decoded, f'{self.config["output_path"]}/vae_recon_20.mp4', fps=20)
         save_video(decoded, f'{self.config["output_path"]}/vae_recon_30.mp4', fps=30)
+        torch.cuda.empty_cache()
 
     def edit_video(self):
         os.makedirs(f'{self.config["output_path"]}/img_ode', exist_ok=True)
@@ -445,7 +465,11 @@ class AdaFlow(nn.Module):
         pnp_f_t = int(self.config["n_timesteps"] * self.config["pnp_f_t"])
         pnp_attn_t = int(self.config["n_timesteps"] * self.config["pnp_attn_t"])
         self.init_method(conv_injection_t=pnp_f_t, qk_injection_t=pnp_attn_t)
-        noisy_latents = self.scheduler.add_noise(self.latents, self.eps, self.scheduler.timesteps[0])
+        noisy_latents = self.scheduler.add_noise(self.latents.to(self.device), self.eps.to(self.device), self.scheduler.timesteps[0])
+        self.latents = self.latents.detach().cpu()
+        self.eps = self.eps.detach().cpu()
+        noisy_latents = noisy_latents.detach().cpu()
+        torch.cuda.empty_cache()
         edited_frames = self.sample_loop(noisy_latents, torch.arange(self.config["n_frames"]))
         save_video(edited_frames, f'{self.config["output_path"]}/adaflow_fps_10.mp4')
         save_video(edited_frames, f'{self.config["output_path"]}/adaflow_fps_20.mp4', fps=20)
@@ -474,7 +498,7 @@ def run(config):
 
 if __name__ == '__main__':
     parser = argparse.ArgumentParser()
-    parser.add_argument('--config_path', type=str, default='configs/config.yaml')
+    parser.add_argument('--config_path', type=str, default='configs/config-field.yaml')
     opt = parser.parse_args()
     with open(opt.config_path, "r") as f:
         config = yaml.safe_load(f)

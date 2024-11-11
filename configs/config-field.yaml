@@ -1,0 +1,21 @@
+H: 384
+W: 672
+batch_size: auto
+data_path: data/field
+device: cuda
+guidance_scale: 7.5
+latents_path: latents
+max_batch_size: 400
+max_kv_size: 20
+n_frames: all
+n_inversion_steps: 50
+n_timesteps: 50
+negative_prompt: ugly, blurry, low res, unrealistic, unaesthetic
+output_path: results
+pnp_attn_t: 0.8
+pnp_f_t: 0.8
+prompt: "The golden grass, clearly Van Gogh's artistic style."
+sd_version: '2.1'
+seed: 1
+similarity_mean_threshold: 0.75
+similarity_region_threshold: 0.6

@@ -28,9 +28,9 @@ Additional arguments:
 
 ## Editing
 
-To edit your video, first create a yaml config as in `configs/config.yaml`. Then run
+To edit your video, first create a yaml config as yaml files in `configs`. Then run
 
 ```
-python run.py
+python run.py --config_path <yaml config file path>
 ```
 

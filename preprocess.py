@@ -179,7 +179,7 @@ class Preprocess(nn.Module):
         imgs = 2 * imgs - 1
         latents = []
         for i in range(0, len(imgs), batch_size):
-            posterior = self.vae.encode(imgs[i:i + batch_size]).latent_dist
+            posterior = self.vae.encode(imgs[i:i + batch_size].to(self.device)).latent_dist
             latent = posterior.mean if deterministic else posterior.sample()
             latents.append(latent * 0.18215)
         latents = torch.cat(latents)
@@ -194,7 +194,7 @@ class Preprocess(nn.Module):
         frames = [Image.open(path).convert('RGB') for path in paths]
         if frames[0].size[0] == frames[0].size[1]:
             frames = [frame.resize((512, 512), resample=Image.Resampling.LANCZOS) for frame in frames]
-        frames = torch.stack([T.ToTensor()(frame) for frame in frames]).to(torch.float16).to(self.device)
+        frames = torch.stack([T.ToTensor()(frame) for frame in frames]).to(torch.float16)
         # encode to latents
         latents = self.encode_imgs(frames, deterministic=True).to(torch.float16).to(self.device)
         return paths, frames, latents
@@ -349,7 +349,7 @@ if __name__ == "__main__":
     parser.add_argument('--sd_version', type=str, default='2.1', choices=['1.5', '2.0', '2.1', 'ControlNet', 'depth'],
                         help="stable diffusion version")
     parser.add_argument('--steps', type=int, default=50)
-    parser.add_argument('--batch_size', type=int, default=40)
+    parser.add_argument('--batch_size', type=int, default=400)
     parser.add_argument('--save_steps', type=int, default=50)
     parser.add_argument('--n_frames', type=str, default='all')  # 'all' or int
     parser.add_argument('--inversion_prompt', type=str, default='')
