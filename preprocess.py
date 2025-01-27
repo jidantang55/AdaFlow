@@ -340,15 +340,15 @@ if __name__ == "__main__":
     device = 'cuda'
     parser = argparse.ArgumentParser()
     parser.add_argument('--data_path', type=str,
-                        default='data/car-turn.mp4')
-    parser.add_argument('--H', type=int, default=512,
+                        default='data/field.mp4')
+    parser.add_argument('--H', type=int, default=384,
                         help='for non-square videos, we recommand using 672 x 384 or 384 x 672, aspect ratio 1.75')
-    parser.add_argument('--W', type=int, default=512,
+    parser.add_argument('--W', type=int, default=672,
                         help='for non-square videos, we recommand using 672 x 384 or 384 x 672, aspect ratio 1.75')
     parser.add_argument('--save_dir', type=str, default='latents')
     parser.add_argument('--sd_version', type=str, default='2.1', choices=['1.5', '2.0', '2.1', 'ControlNet', 'depth'],
                         help="stable diffusion version")
-    parser.add_argument('--steps', type=int, default=50)
+    parser.add_argument('--steps', type=int, default=100)
     parser.add_argument('--batch_size', type=int, default=400)
     parser.add_argument('--save_steps', type=int, default=50)
     parser.add_argument('--n_frames', type=str, default='all')  # 'all' or int
