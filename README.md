@@ -1,5 +1,15 @@
 # AdaFlow: Efficient Long Video Editing via Adaptive Attention Slimming And Keyframe Selection
 
+**AdaFlow** is a training-free method for efficient long video editing, leveraging adaptive attention slimming and keyframe selection to handle over 1k frames in a single GPU inference while maintaining high quality and temporal consistency, validated on the novel LongV-EVAL benchmark.
+
+## Overview
+
+![framework](README.assets/framework.png)
+
+## Sample Results
+
+![ap_vis](README.assets/ap_vis.png)
+
 ## Environment
 
 ```text
@@ -34,3 +44,8 @@ To edit your video, first create a yaml config as yaml files in `configs`. Then 
 python run.py --config_path <yaml config file path>
 ```
 
+## Citation
+
+## Acknowledgment
+
+We would like to acknowledge that part of our code is derived from the open-source project [TokenFlow](https://github.com/omerbt/TokenFlow). Thanks for their amazing work!
