@@ -44,6 +44,12 @@ To edit your video, first create a yaml config as yaml files in `configs`. Then 
 python run.py --config_path <yaml config file path>
 ```
 
+## LongV-EVAL
+
+**LongV-EVAL** is a benchmark designed for evaluating text-driven long video editing methods, featuring 75 high-quality videos (~1 minute each) spanning diverse scenes (humans, landscapes, animals, etc.) with three annotated editing prompts per video (foreground, background, style). It includes metrics for frame quality, video quality, object consistency, and semantic consistency to comprehensively assess editing performance.
+
+Coming Soon!
+
 ## Citation
 
 ## Acknowledgment
