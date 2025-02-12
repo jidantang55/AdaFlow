@@ -48,9 +48,21 @@ python run.py --config_path <yaml config file path>
 
 **LongV-EVAL** is a benchmark designed for evaluating text-driven long video editing methods, featuring 75 high-quality videos (~1 minute each) spanning diverse scenes (humans, landscapes, animals, etc.) with three annotated editing prompts per video (foreground, background, style). It includes metrics for frame quality, video quality, object consistency, and semantic consistency to comprehensively assess editing performance.
 
-Coming Soon!
+Please visit LongV-EVAL on Hugging Face at the following link: https://huggingface.co/datasets/zhangsh2001/LongV-EVAL.
 
 ## Citation
+
+```
+@misc{zhang2025adaflowefficientlongvideo,
+      title={AdaFlow: Efficient Long Video Editing via Adaptive Attention Slimming And Keyframe Selection}, 
+      author={Shuheng Zhang and Yuqi Liu and Hongbo Zhou and Jun Peng and Yiyi Zhou and Xiaoshuai Sun and Rongrong Ji},
+      year={2025},
+      eprint={2502.05433},
+      archivePrefix={arXiv},
+      primaryClass={cs.CV},
+      url={https://arxiv.org/abs/2502.05433}, 
+}
+```
 
 ## Acknowledgment
 
