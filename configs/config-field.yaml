@@ -8,7 +8,7 @@ latents_path: latents
 max_batch_size: 400
 max_kv_size: 20
 n_frames: all
-n_inversion_steps: 50
+n_inversion_steps: 100
 n_timesteps: 50
 negative_prompt: ugly, blurry, low res, unrealistic, unaesthetic
 output_path: results
