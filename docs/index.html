@@ -12,6 +12,16 @@
   <link rel="stylesheet" href="./assets/css/index.css">
 </head>
 
+<script>
+MathJax = {
+  tex: { inlineMath: [['$', '$'], ['\\(', '\\)']] },
+  svg: { fontCache: 'global' }
+};
+</script>
+<script id="MathJax-script" async
+  src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js">
+</script>
+
 <body>
 
 <!-- Title + Authors -->
@@ -55,12 +65,20 @@
           </a>
         </span>
         <span class="link-block">
-          <a href="https://github.com/google/nerfies/releases/tag/0.1"
+          <a href="https://huggingface.co/datasets/zhangsh2001/LongV-EVAL"
              class="external-link button is-normal is-rounded is-dark">
             <span class="icon">
                 <i class="far fa-images"></i>
             </span>
-            <span>Data</span>
+            <span>LongV-EVAL</span>
+          </a>
+        </span>
+        <span class="link-block">
+          <a href="./assets/pdfs/Appendix.pdf"
+             class="external-link button is-normal is-rounded is-dark"
+             target="_blank">
+            <span class="icon"><i class="far fa-file-pdf"></i></span>
+            <span>Appendix</span>
           </a>
         </span>
       </div>
@@ -74,8 +92,21 @@
     <h2 class="title is-3 has-text-centered">Abstract</h2>
     <div class="content has-text-justified">
       <p>
-        Put your abstract here. You can format this as multiple paragraphs if needed.
-        Keep it concise and use plain HTML &lt;p&gt; tags.
+      Despite great progress, text-driven long video editing is still notoriously challenging mainly due to excessive memory overhead.
+      Although recent efforts have simplified this task into a two-step process of keyframe translation and interpolation generation,
+      the token-wise keyframe translation still plagues the upper limit of video length.
+      In this paper, we propose a novel and training-free approach towards efficient and effective long video editing, termed
+      <b><i>AdaFlow</i></b>.
+      We first reveal that not all tokens of video frames hold equal importance for keyframe translation, based on which we propose an
+      <i>Adaptive Attention Slimming</i> scheme for AdaFlow to squeeze the \( KV \) sequence, thus increasing the number of keyframes
+      for translations by an order of magnitude.
+      In addition, an <i>Adaptive Keyframe Selection</i> scheme is also equipped to select the representative frames for joint editing,
+      further improving generation quality.
+      With these innovative designs, AdaFlow achieves high-quality long video editing of minutes in one inference,
+      <i>i.e.</i>, more than \( 1k \) frames on one A800 GPU, which is about ten times longer than the compared methods,
+      <i>e.g.</i>, TokenFlow.
+      To validate AdaFlow, we also build a new benchmark for long video editing with high-quality annotations, termed
+      <b><i>LongV-EVAL</i></b>.
       </p>
     </div>
   </div>
@@ -106,15 +137,3 @@
 
   </div>
 </section>
-
-<footer class="footer">
-  <div class="content has-text-centered">
-    <p>
-      Built with the <a href="https://github.com/nerfies/nerfies.github.io">Nerfies template</a>.
-      Feel free to use and modify.
-    </p>
-  </div>
-</footer>
-
-</body>
-</html>
