@@ -1,51 +1,103 @@
-<!doctype html>
+<!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="utf-8" />
-  <meta name="viewport" content="width=device-width,initial-scale=1" />
-  <title>PAPER_TITLE — Project Page</title>
-  <style>
-    body { font-family: sans-serif; margin: 0; background: #f7f7f7; }
-    header { background: white; padding: 20px; border-bottom: 1px solid #ddd; }
-    .container { max-width: 900px; margin: 0 auto; padding: 16px; }
-    h1 { margin-top: 0; }
-    .links a { margin-right: 16px; text-decoration: none; color: #0366d6; }
-    .grid { display: grid; grid-template-columns: repeat(auto-fill,minmax(260px,1fr)); gap: 16px; margin-top: 20px; }
-    .card { background: white; border-radius: 8px; overflow: hidden; box-shadow: 0 1px 4px rgba(0,0,0,0.1); }
-    video { width: 100%; display: block; }
-    .prompt { font-size: 14px; color: #555; padding: 8px; background: #f0f0f0; }
-  </style>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>AdaFlow: Your Project Title</title>
+
+  <link href="https://fonts.googleapis.com/css?family=Google+Sans|Noto+Sans|Castoro" rel="stylesheet">
+  <link rel="stylesheet" href="./assets/css/bulma.min.css">
+  <link rel="stylesheet" href="./assets/css/fontawesome.all.min.css">
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/jpswalsh/academicons@1/css/academicons.min.css">
+  <link rel="stylesheet" href="./assets/css/index.css">
 </head>
+
 <body>
-  <header>
-    <div class="container">
-      <h1>PAPER_TITLE</h1>
-      <p>简短一句话介绍你的论文。</p>
-      <div class="links">
-        <a href="PAPER_PDF_URL" target="_blank">📄 Paper</a>
-        <a href="CODE_REPO_URL" target="_blank">💻 Code</a>
-        <a href="DATASET_URL" target="_blank">📂 Dataset</a>
-      </div>
-    </div>
-  </header>
 
-  <main class="container">
-    <h2>Examples</h2>
-    <div class="grid">
-      <div class="card">
-        <video controls poster="assets/images/test.png">
-          <source src="assets/videos/video_short.mp4" type="video/mp4">
-        </video>
-        <div class="prompt">Prompt: "Make it look like night"</div>
+<!-- Title + Authors -->
+<section class="hero">
+  <div class="hero-body">
+    <div class="container has-text-centered">
+      <h1 class="title is-1">AdaFlow: Your Paper Title</h1>
+      <div class="is-size-5 publication-authors">
+        <span class="author-block">Your Name<sup>1</sup>,</span>
+        <span class="author-block">Coauthor Name<sup>2</sup></span>
+      </div>
+      <div class="is-size-5 publication-authors">
+        <span class="author-block"><sup>1</sup>Your Institution,</span>
+        <span class="author-block"><sup>2</sup>Coauthor Institution</span>
       </div>
 
-      <div class="card">
-        <video controls poster="assets/images/test.png">
-          <source src="assets/videos/video_short.mp4" type="video/mp4">
-        </video>
-        <div class="prompt">Prompt: "Remove moving person"</div>
+      <!-- Buttons -->
+      <div class="publication-links" style="margin-top: 1rem;">
+        <a href="https://arxiv.org/abs/XXXX.XXXXX" class="button is-dark is-rounded">
+          <span class="icon"><i class="fas fa-file-pdf"></i></span>
+          <span>Paper</span>
+        </a>
+        <a href="https://github.com/jidantang55/AdaFlow" class="button is-dark is-rounded">
+          <span class="icon"><i class="fab fa-github"></i></span>
+          <span>Code</span>
+        </a>
+        <a href="https://dataset-link.com" class="button is-dark is-rounded">
+          <span class="icon"><i class="far fa-images"></i></span>
+          <span>Data</span>
+        </a>
+        <a href="#videos" class="button is-dark is-rounded">
+          <span class="icon"><i class="fab fa-youtube"></i></span>
+          <span>Video</span>
+        </a>
       </div>
     </div>
-  </main>
+  </div>
+</section>
+
+<!-- Abstract -->
+<section class="section">
+  <div class="container is-max-desktop">
+    <h2 class="title is-3 has-text-centered">Abstract</h2>
+    <div class="content has-text-justified">
+      <p>
+        Put your abstract here. You can format this as multiple paragraphs if needed.
+        Keep it concise and use plain HTML &lt;p&gt; tags.
+      </p>
+    </div>
+  </div>
+</section>
+
+<!-- Videos -->
+<section class="section" id="videos">
+  <div class="container is-max-desktop">
+    <h2 class="title is-3 has-text-centered">Results</h2>
+
+    <div class="columns is-centered">
+      <div class="column is-half has-text-centered">
+        <video autoplay muted loop controls playsinline width="100%">
+          <source src="./assets/videos/video_short.mp4" type="video/mp4">
+        </video>
+        <p>Example 1: description of this video</p>
+      </div>
+
+      <div class="column is-half has-text-centered">
+        <video autoplay muted loop controls playsinline width="100%">
+          <source src="./assets/videos/video_short.mp4" type="video/mp4">
+        </video>
+        <p>Example 2: description of this video</p>
+      </div>
+    </div>
+
+    <!-- Add more videos as needed by duplicating the column block above -->
+
+  </div>
+</section>
+
+<footer class="footer">
+  <div class="content has-text-centered">
+    <p>
+      Built with the <a href="https://github.com/nerfies/nerfies.github.io">Nerfies template</a>.
+      Feel free to use and modify.
+    </p>
+  </div>
+</footer>
+
 </body>
 </html>
