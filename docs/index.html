@@ -7,6 +7,9 @@
 
   <link href="https://fonts.googleapis.com/css?family=Google+Sans|Noto+Sans|Castoro" rel="stylesheet">
   <link rel="stylesheet" href="./assets/css/bulma.min.css">
+  <link rel="stylesheet"
+      href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css"
+      crossorigin="anonymous" referrerpolicy="no-referrer" />
   <link rel="stylesheet" href="./assets/css/fontawesome.all.min.css">
   <link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/jpswalsh/academicons@1/css/academicons.min.css">
   <link rel="stylesheet" href="./assets/css/index.css">
@@ -48,36 +51,36 @@ MathJax = {
       <div class="publication-links" style="margin-top: 1rem;">
         <span class="link-block">
           <a href="https://arxiv.org/abs/2502.05433"
-             class="external-link button is-normal is-rounded is-dark">
-        <span class="icon">
-                <i class="ai ai-arxiv"></i>
-            </span>
+             class="external-link button is-normal is-rounded is-dark"
+             target="_blank" rel="noopener noreferrer">
+            <span class="icon"><i class="ai ai-arxiv" aria-hidden="true"></i></span>
             <span>arXiv</span>
           </a>
         </span>
+
         <span class="link-block">
           <a href="https://github.com/jidantang55/AdaFlow"
-             class="external-link button is-normal is-rounded is-dark">
-          <span class="icon">
-              <i class="fab fa-github"></i>
-          </span>
+             class="external-link button is-normal is-rounded is-dark"
+             target="_blank" rel="noopener noreferrer">
+            <span class="icon"><i class="fab fa-github" aria-hidden="true"></i></span>
             <span>Code</span>
           </a>
         </span>
+
         <span class="link-block">
           <a href="https://huggingface.co/datasets/zhangsh2001/LongV-EVAL"
-             class="external-link button is-normal is-rounded is-dark">
-            <span class="icon">
-                <i class="far fa-images"></i>
-            </span>
+             class="external-link button is-normal is-rounded is-dark"
+             target="_blank" rel="noopener noreferrer">
+            <span class="icon"><i class="fas fa-database" aria-hidden="true"></i></span>
             <span>LongV-EVAL</span>
           </a>
         </span>
+
         <span class="link-block">
           <a href="./assets/pdfs/Appendix.pdf"
              class="external-link button is-normal is-rounded is-dark"
-             target="_blank">
-            <span class="icon"><i class="far fa-file-pdf"></i></span>
+             target="_blank" rel="noopener noreferrer">
+            <span class="icon"><i class="fas fa-file-pdf" aria-hidden="true"></i></span>
             <span>Appendix</span>
           </a>
         </span>
@@ -112,28 +115,88 @@ MathJax = {
   </div>
 </section>
 
-<!-- Videos -->
-<section class="section" id="videos">
+<!-- Key Contributions -->
+<section class="section">
   <div class="container is-max-desktop">
-    <h2 class="title is-3 has-text-centered">Results</h2>
-
-    <div class="columns is-centered">
-      <div class="column is-half has-text-centered">
-        <video autoplay muted loop controls playsinline width="100%">
-          <source src="./assets/videos/video_short.mp4" type="video/mp4">
-        </video>
-        <p>Example 1: description of this video</p>
-      </div>
-
-      <div class="column is-half has-text-centered">
-        <video autoplay muted loop controls playsinline width="100%">
-          <source src="./assets/videos/video_short.mp4" type="video/mp4">
-        </video>
-        <p>Example 2: description of this video</p>
-      </div>
+    <h2 class="title is-3 has-text-centered">Key Contributions</h2>
+    <div class="content has-text-justified">
+      <p>
+      Our proposed AdaFlow method achieves a <b>significant efficiency improvement of over 40%</b> compared to state-of-the-art methods
+      while maintaining comparable video editing quality. This breakthrough is made possible through our innovative Adaptive Attention
+      Slimming and Keyframe Selection mechanisms, which intelligently reduce computational overhead without compromising visual fidelity.
+      </p>
     </div>
 
-    <!-- Add more videos as needed by duplicating the column block above -->
+    <div class="columns is-centered">
+      <div class="column is-full has-text-centered">
+        <figure class="image">
+          <img src="./assets/images/tabel1.png" alt="Efficiency Comparison Table" style="max-width: 80%; margin: 0 auto;">
+        </figure>
+      </div>
+    </div>
+  </div>
+</section>
 
+<!-- Videos -->
+<section class="section" id="short_videos">
+  <div class="container is-max-desktop">
+    <h2 class="title is-3 has-text-centered">Comparison on Short Videos</h2>
+
+    <!-- 添加的视频描述文字 -->
+    <div class="content has-text-justified" style="margin-bottom: 2rem;">
+      <p>
+      Our method is compared with TokenFlow's official sample. Although our method was designed for long videos, it still has advantages in terms of efficiency and quality when applied to such shorter videos. It should be noted that since we and TokenFlow used the same pre-trained weights and image editing methods, the generated results are somewhat similar. Once again, it should be emphasized that the main contribution of this paper lies in terms of efficiency, rather than in the outstanding generation results.
+      </p>
+    </div>
+
+    <div class="columns is-centered">
+      <div class="column has-text-centered">
+        <video autoplay muted loop controls playsinline width="1000">
+          <source src="./assets/videos/video_short.mp4" type="video/mp4">
+        </video>
+      </div>
+    </div>
+  </div>
+</section>
+
+<section class="section" id="long_videos">
+  <div class="container is-max-desktop">
+    <h2 class="title is-3 has-text-centered">Comparison on Long Videos</h2>
+
+    <!-- 添加的视频描述文字 -->
+    <div class="content has-text-justified" style="margin-bottom: 2rem;">
+      <p>
+      Our method is compared with TokenFlow on the long video samples. Our method can edit long videos all at once on a single GPU, while other methods can only edit them segment by segment, which would seriously compromise the temporal consistency. Moreover, our method also has significantly shorter processing time.
+      </p>
+    </div>
+
+    <div class="columns is-centered">
+      <div class="column has-text-centered">
+        <video autoplay muted loop controls playsinline width="1000">
+          <source src="./assets/videos/video_long.mp4" type="video/mp4">
+        </video>
+      </div>
+    </div>
+  </div>
+</section>
+
+<section class="section" id="10k_videos">
+  <div class="container is-max-desktop">
+    <h2 class="title is-3 has-text-centered">Extremely Long Videos</h2>
+
+    <!-- 添加的视频描述文字 -->
+    <div class="content has-text-justified" style="margin-bottom: 2rem;">
+      <p>
+      Thanks to the adaptive keyframe selection, for relatively static videos, we can edit very long videos in one go. For instance, this video has over ten thousand frames, and we can still complete the editing process on a single GPU.
+      </p>
+    </div>
+
+    <div class="columns is-centered">
+      <div class="column has-text-centered">
+        <video autoplay muted loop controls playsinline width="1000">
+          <source src="./assets/videos/video_10k.mp4" type="video/mp4">
+        </video>
+      </div>
+    </div>
   </div>
 </section>
